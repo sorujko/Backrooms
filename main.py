@@ -21,10 +21,13 @@ def get_unique_tags(df, tag_column='Tags'):
     return sorted(unique_tags)
 
 # Function to apply filters
-def apply_filters(df, selected_tags, rating_range, tag_column='Tags'):
+def apply_filters(df, selected_tags, rating_range, tag_filter_type='OR', tag_column='Tags'):
     if selected_tags:
-        df = df[df[tag_column].apply(lambda x: any(tag in x for tag in selected_tags) if pd.notna(x) else False)]
-
+        if tag_filter_type == 'AND':
+            df = df[df[tag_column].apply(lambda x: all(tag in x for tag in selected_tags) if pd.notna(x) else False)]
+        elif tag_filter_type == 'OR':
+            df = df[df[tag_column].apply(lambda x: any(tag in x for tag in selected_tags) if pd.notna(x) else False)]
+    
     df = df[(df['Rating'] >= rating_range[0]) & (df['Rating'] <= rating_range[1])]
     
     return df
@@ -42,6 +45,9 @@ with tab1:
     unique_tags = get_unique_tags(df1)
     selected_tags = st.multiselect("Select Tags", options=unique_tags)
 
+    # Tag filter type
+    tag_filter_type = st.radio("Tag Filter Type", ['AND', 'OR'])
+
     # Rating slider
     min_rating, max_rating = df1['Rating'].min(), df1['Rating'].max()
     rating_range = st.slider("Select Rating Range", min_rating, max_rating, (min_rating, max_rating))
@@ -50,7 +56,7 @@ with tab1:
     if selected_class != 'All Classes':
         df1 = df1[df1['Class'] == selected_class]
 
-    df1 = apply_filters(df1, selected_tags, rating_range)
+    df1 = apply_filters(df1, selected_tags, rating_range, tag_filter_type)
     
     st.dataframe(df1)
 
@@ -63,12 +69,15 @@ with tab2:
     unique_tags = get_unique_tags(df2)
     selected_tags = st.multiselect("Select Tags", options=unique_tags, key='tags2')
 
+    # Tag filter type
+    tag_filter_type = st.radio("Tag Filter Type", ['AND', 'OR'], key='tag_filter_type2')
+
     # Rating slider
     min_rating, max_rating = df2['Rating'].min(), df2['Rating'].max()
     rating_range = st.slider("Select Rating Range", min_rating, max_rating, (min_rating, max_rating), key='rating2')
 
     # Apply filters
-    df2 = apply_filters(df2, selected_tags, rating_range)
+    df2 = apply_filters(df2, selected_tags, rating_range, tag_filter_type)
     
     st.dataframe(df2)
     
@@ -81,11 +90,14 @@ with tab3:
     unique_tags = get_unique_tags(df3)
     selected_tags = st.multiselect("Select Tags", options=unique_tags, key='tags3')
 
+    # Tag filter type
+    tag_filter_type = st.radio("Tag Filter Type", ['AND', 'OR'], key='tag_filter_type3')
+
     # Rating slider
     min_rating, max_rating = df3['Rating'].min(), df3['Rating'].max()
     rating_range = st.slider("Select Rating Range", min_rating, max_rating, (min_rating, max_rating), key='rating3')
 
     # Apply filters
-    df3 = apply_filters(df3, selected_tags, rating_range)
+    df3 = apply_filters(df3, selected_tags, rating_range, tag_filter_type)
     
     st.dataframe(df3)
